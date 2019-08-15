@@ -1,0 +1,7 @@
+
+{
+  "apiGateway": {
+    "REGION": "us-east-1",
+    "URL": "https://giuifjcz3a.execute-api.us-east-1.amazonaws.com/dev"
+  }
+}

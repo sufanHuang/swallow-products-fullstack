@@ -1,0 +1,90 @@
+service: swallow-products
+
+custom:
+  settings:
+    TABLE_NAME: products
+  paths:
+    rootApiPath: /products
+  webpack:
+    webpackConfig: 'webpack.serverless.js'
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: us-east-1
+  environment: ${self:custom.settings}
+  iamRoleStatements:
+   - Effect: "Allow"
+     Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+     Resource:
+      - Fn::GetAtt: [ PostsTable, Arn ]
+
+functions:
+  createProduct:
+    handler: functions/productActions.createProduct
+    events:
+      - http:
+          path: ${self:custom.paths.rootApiPath}
+          method: post
+          cors: true
+
+  getAllProducts:
+    handler: functions/productActions.getAllProducts
+    events:
+      - http:
+          path: ${self:custom.paths.rootApiPath}
+          method: get
+          cors: true
+
+  getProduct:
+    handler: functions/productActions.getProduct
+    events:
+      - http:
+          path: ${self:custom.paths.rootApiPath}/{id}
+          method: get
+          cors: true
+
+  updateProduct:
+    handler: functions/productActions.updateProduct
+    events:
+      - http:
+          path: ${self:custom.paths.rootApiPath}/{id}
+          method: put
+          cors: true
+
+  deleteProduct:
+    handler: functions/productActions.deleteProduct
+    events:
+      - http:
+          path: ${self:custom.paths.rootApiPath}/{id}
+          method: delete
+          cors: true
+
+resources:
+  Resources:
+    PostsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+        - AttributeName: "id"
+          AttributeType: "S"
+        KeySchema:
+        - AttributeName: "id"
+          KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.settings.TABLE_NAME}
+
+plugins:
+  - serverless-webpack
+
+package:
+  exclude:
+  - node_modules/aws-sdk/**
